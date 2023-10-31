@@ -45,25 +45,38 @@ function App() {
    }
 
    const handleAddBook = async () => {
-      await fetch(`${apiUrl}/create-book`, {
-         method: 'POST',
-         body: JSON.stringify(newBook),
-         headers: {
-            "Content-type": "application/json"
+      let status = false
+      if (newBook) {
+         if (newBook.title && newBook.author) {
+            await fetch(`${apiUrl}/create-book`, {
+               method: 'POST',
+               body: JSON.stringify(newBook),
+               headers: {
+                  "Content-type": "application/json"
+               }
+            })
+               .then(resp => resp.json())
+               .then(data => {
+                  if (data.status) {
+                     setBooks(prevS => ([...prevS, newBook]))
+                     toggle()
+                     setNewBook(null)
+                     setReload(true)
+                  }
+               })
+               .catch(err => {
+                  alert('something went to wrong!')
+               })
          }
-      })
-         .then(resp => resp.json())
-         .then(data => {
-            if (data.status) {
-               setBooks(prevS => ([...prevS, newBook]))
-               toggle()
-               setNewBook(null)
-               setReload(true)
-            }
-         })
-         .catch(err => {
+         else{
             alert('Please fill Book details')
-         })
+         }
+      }
+      else{
+         alert('Please fill Book details')
+      }
+
+
    }
 
    const handleDelete = async (bookId) => {
@@ -119,7 +132,7 @@ function App() {
       ))
    }
 
-   const handleUpdateBook = async(bookId) => {
+   const handleUpdateBook = async (bookId) => {
       // updated values are present in populatedBook
       await fetch(`${apiUrl}/update-book/${bookId}`, {
          method: 'PUT',
@@ -177,8 +190,8 @@ function App() {
          <Modal isOpen={modalAddNewBook} toggle={toggle}>
             <ModalHeader toggle={toggle}>Add new book</ModalHeader>
             <ModalBody>
-               <input type="text" name='title' placeholder='Enter book title' onChange={storeNewBook} />
-               <input type="text" name='author' placeholder='Enter author name' onChange={storeNewBook} />
+               <input type="text" name='title' placeholder='Enter book title*' onChange={storeNewBook} />
+               <input type="text" name='author' placeholder='Enter author name*' onChange={storeNewBook} />
                <input type="text" name='summary' placeholder='Enter book summary' onChange={storeNewBook} />
             </ModalBody>
             <ModalFooter>
@@ -202,7 +215,7 @@ function App() {
                   <input type="text" name='summary' value={populatedBook.summary} placeholder='Enter book summary' onChange={storeEditedBookData} />
                </ModalBody>
                <ModalFooter>
-                  <Button color="primary" onClick={()=>handleUpdateBook(populatedBook._id)}>
+                  <Button color="primary" onClick={() => handleUpdateBook(populatedBook._id)}>
                      Update
                   </Button>{' '}
                   <Button color="secondary" onClick={toggleEditModal}>
